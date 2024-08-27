@@ -44,7 +44,7 @@ void unbind_device(const string devpath) {
         outFile.close();
         cout << "Device unbinded: " << devpath << endl;
     } else {
-        cout << "Unable to open file.\n";
+        cout << "Unable to open file." << endl;
     }
 }
 
@@ -109,18 +109,28 @@ void watch_device(const string device, const string devpath) {
 
 int main() {
     const string events_filepath = "/dev/input/";
-    //const string unbind_filepath = "/sys/bus/usb/drivers/";
-    //string filepath = "./test";
+
+    vector<string> old_events_files, new_events_files;
+    vector<string> old_usb_files, new_usb_files;
+
+    old_events_files = get_files(events_filepath);
+    string keyboard_events_path;
+    string devpath;
+    
+    if (geteuid() != 0) {
+        cerr << "I need root privileges!" << endl;
+        return 1;
+    }
 
     struct udev* udev = udev_new();
     if (!udev) {
-        cerr << "Failed to create udev object\n";
+        cerr << "Failed to create udev object" << endl;
         return 1;
     }
 
     struct udev_monitor* mon = udev_monitor_new_from_netlink(udev, "udev");
     if (!mon) {
-        cerr << "Failed to create udev monitor\n";
+        cerr << "Failed to create udev monitor" << endl;
         udev_unref(udev);
         return 1;
     }
@@ -129,13 +139,6 @@ int main() {
     udev_monitor_enable_receiving(mon);
 
     int fd = udev_monitor_get_fd(mon);
-
-    vector<string> old_events_files, new_events_files;
-    vector<string> old_usb_files, new_usb_files;
-
-    old_events_files = get_files(events_filepath);
-    string keyboard_events_path;
-    string devpath;
 
     while (true) {
         fd_set fds;
@@ -155,7 +158,7 @@ int main() {
                         new_events_files.clear();
                         new_events_files = get_files(events_filepath);
 
-                        for (const auto path : new_events_files) {;
+                        for (const auto & path : new_events_files) {;
                             if (find(old_events_files.begin(), old_events_files.end(), path) == old_events_files.end()) {
                                 devpath = (string) udev_device_get_devpath(dev);
                                 devpath = devpath.substr(devpath.find_last_of("/") + 1);
