@@ -1,6 +1,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <fcntl.h>
+#include <string.h>
 #include <cstring>
 #include <filesystem>
 #include <algorithm>
@@ -9,7 +10,6 @@
 #include <thread>
 
 #include <libudev.h>
-#include <string.h>
 
 using namespace std;
 
